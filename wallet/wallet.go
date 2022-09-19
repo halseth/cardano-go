@@ -22,13 +22,14 @@ const (
 )
 
 type Wallet struct {
-	ID       string
-	Name     string
-	addrKeys []crypto.XPrvKey
-	stakeKey crypto.XPrvKey
-	rootKey  crypto.XPrvKey
-	node     cardano.Node
-	network  cardano.Network
+	ID         string
+	Name       string
+	addrKeys   []crypto.XPrvKey
+	stakeKey   crypto.XPrvKey
+	rootKey    crypto.XPrvKey
+	accountKey crypto.XPrvKey
+	node       cardano.Node
+	network    cardano.Network
 }
 
 // Transfer sends an amount of lovelace to the receiver address and returns the transaction hash
@@ -169,6 +170,10 @@ func (w *Wallet) Keys() (crypto.PrvKey, crypto.PrvKey) {
 	return w.addrKeys[0].PrvKey(), w.stakeKey.PrvKey()
 }
 
+func (w *Wallet) ChangeKey(index uint32) crypto.PrvKey {
+	return w.accountKey.Derive(1).Derive(index).PrvKey()
+}
+
 func newWalletID() string {
 	id, _ := gonanoid.Generate(walleIDAlphabet, 10)
 	return "wallet_" + id
@@ -184,6 +189,7 @@ func newWallet(name, password string, entropy []byte) *Wallet {
 	stakeKey := accountKey.Derive(2).Derive(0)
 	addr0Key := chainKey.Derive(0)
 	wallet.rootKey = chainKey
+	wallet.accountKey = accountKey
 	wallet.addrKeys = []crypto.XPrvKey{addr0Key}
 	wallet.stakeKey = stakeKey
 	return wallet
