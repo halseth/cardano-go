@@ -16,7 +16,8 @@ const (
 	purposeIndex       uint32 = 1852 + 0x80000000
 	coinTypeIndex      uint32 = 1815 + 0x80000000
 	accountIndex       uint32 = 0x80000000
-	externalChainIndex uint32 = 0x0
+	externalChainIndex uint32 = 0x00
+	internalChainIndex uint32 = 0x01
 	stakingChainIndex  uint32 = 0x02
 	walleIDAlphabet           = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 )
@@ -166,12 +167,13 @@ func (w *Wallet) Addresses() ([]cardano.Address, error) {
 	return addresses, nil
 }
 
-func (w *Wallet) Keys() (crypto.PrvKey, crypto.PrvKey) {
-	return w.addrKeys[0].PrvKey(), w.stakeKey.PrvKey()
+func (w *Wallet) Keys(index uint32) (crypto.PrvKey, crypto.PrvKey) {
+	paymentKey := w.accountKey.Derive(externalChainIndex).Derive(index)
+	return paymentKey.PrvKey(), w.stakeKey.PrvKey()
 }
 
 func (w *Wallet) ChangeKey(index uint32) crypto.PrvKey {
-	return w.accountKey.Derive(1).Derive(index).PrvKey()
+	return w.accountKey.Derive(internalChainIndex).Derive(index).PrvKey()
 }
 
 func newWalletID() string {
